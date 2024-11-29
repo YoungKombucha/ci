@@ -1,0 +1,41 @@
+{
+  "Files": [
+    {
+      "Id": "D:\\current semester\\serverside\\Lab 5\\Lab5prime\\Lab5prime\\obj\\Debug\\net8.0\\scopedcss\\projectbundle\\Lab5prime.bundle.scp.css",
+      "PackagePath": "staticwebassets\\Lab5prime.bundle.scp.css"
+    },
+    {
+      "Id": "D:\\current semester\\serverside\\Lab 5\\Lab5prime\\Lab5prime\\wwwroot\\app.css",
+      "PackagePath": "staticwebassets\\app.css"
+    },
+    {
+      "Id": "D:\\current semester\\serverside\\Lab 5\\Lab5prime\\Lab5prime\\wwwroot\\bootstrap\\bootstrap.min.css",
+      "PackagePath": "staticwebassets\\bootstrap\\bootstrap.min.css"
+    },
+    {
+      "Id": "D:\\current semester\\serverside\\Lab 5\\Lab5prime\\Lab5prime\\wwwroot\\bootstrap\\bootstrap.min.css.map",
+      "PackagePath": "staticwebassets\\bootstrap\\bootstrap.min.css.map"
+    },
+    {
+      "Id": "D:\\current semester\\serverside\\Lab 5\\Lab5prime\\Lab5prime\\wwwroot\\favicon.png",
+      "PackagePath": "staticwebassets\\favicon.png"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.Lab5prime.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.build.Lab5prime.props",
+      "PackagePath": "build\\Lab5prime.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildMultiTargeting.Lab5prime.props",
+      "PackagePath": "buildMultiTargeting\\Lab5prime.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildTransitive.Lab5prime.props",
+      "PackagePath": "buildTransitive\\Lab5prime.props"
+    }
+  ],
+  "ElementsToRemove": []
+}

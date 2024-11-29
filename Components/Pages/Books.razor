@@ -1,0 +1,180 @@
+﻿@rendermode InteractiveServer
+@using Lab5prime.Services
+@using Lab5prime.Models
+@using Lab5prime.Components
+@page "/books"
+@inject ILibraryService LibraryService
+@inject IJSRuntime JSRuntime
+
+<h3>Book Management</h3>
+
+<button class="btn btn-success" @onclick="AddNewBook">Add New Book</button>
+
+@if (books == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Title</th>
+                <th>Author</th>
+                <th>ISBN</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var book in books)
+            {
+                <tr>
+                    <td>@book.Id</td>
+                    <td>@book.Title</td>
+                    <td>@book.Author</td>
+                    <td>@book.ISBN</td>
+                    <td>
+                        <button class="btn btn-primary" @onclick="() => EditBook(book)">Edit</button>
+                        <button class="btn btn-danger" @onclick="() => ConfirmDelete(book.ISBN)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <button class="btn btn-success" @onclick="AddNewBook">Add New Book</button>
+}
+
+@if (showAddEditForm)
+{
+    <div class="modal" tabindex="-1" style="display:block" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(editingBook == null ? "Add New Book" : "Edit Book")</h5>
+                    <button type="button" class="close" @onclick="CloseAddEditForm">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="@currentBook" OnValidSubmit="HandleValidSubmit">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+
+                        <div class="form-group">
+                            <label for="isbn">ISBN:</label>
+                            <InputText id="isbn" @bind-Value="currentBook.ISBN" class="form-control" />
+                            <ValidationMessage For="@(() => currentBook.ISBN)" />
+                        </div>
+                        <div class="form-group">
+                            <label for="title">Title:</label>
+                            <InputText id="title" @bind-Value="currentBook.Title" class="form-control" />
+                            <ValidationMessage For="@(() => currentBook.Title)" />
+                        </div>
+                        <div class="form-group">
+                            <label for="author">Author:</label>
+                            <InputText id="author" @bind-Value="currentBook.Author" class="form-control" />
+                            <ValidationMessage For="@(() => currentBook.Author)" />
+                        </div>
+                        <div class="form-group">
+                            <label for="id">ID:</label>
+                            <InputNumber id="id" @bind-Value="currentBook.Id" class="form-control" />
+                            <ValidationMessage For="@(() => currentBook.Id)" />
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Book> books;
+    private bool showAddEditForm = false;
+    private Book currentBook = new Book();
+    private Book editingBook;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadBooks();
+    }
+
+    private async Task LoadBooks()
+    {
+        books = await LibraryService.GetBooksAsync();
+    }
+
+    private void AddNewBook()
+    {
+        showAddEditForm = true;
+        currentBook = new Book();
+        editingBook = null;
+    }
+
+    private void EditBook(Book book)
+    {
+        showAddEditForm = true;
+        currentBook = new Book
+            {
+                Id = book.Id,
+                Title = book.Title,
+                Author = book.Author,
+                ISBN = book.ISBN
+            };
+        editingBook = book;
+    }
+
+    private async Task ConfirmDelete(string isbn)
+    {
+        bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete this book?");
+        if (confirmed)
+        {
+            await DeleteBook(isbn);
+        }
+    }
+
+    private async Task DeleteBook(string isbn)
+    {
+        try
+        {
+            await LibraryService.DeleteBookAsync(isbn);
+            await LoadBooks();
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Error deleting book: {ex.Message}");
+        }
+    }
+
+    private void CloseAddEditForm()
+    {
+        showAddEditForm = false;
+        currentBook = new Book();
+        editingBook = null;
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            if (editingBook == null)
+            {
+                await LibraryService.AddBookAsync(currentBook);
+            }
+            else
+            {
+                await LibraryService.EditBookAsync(currentBook);
+            }
+
+            CloseAddEditForm();
+            await LoadBooks();
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Error saving book: {ex.Message}");
+        }
+    }
+}

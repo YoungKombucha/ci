@@ -1,0 +1,141 @@
+﻿@rendermode InteractiveServer
+@using Lab5prime.Services
+@using Lab5prime.Models
+@page "/borrowreturn"
+@inject ILibraryService LibraryService
+@inject IJSRuntime JSRuntime
+
+<h3>Borrow and Return Books</h3>
+
+<h4>Borrow a Book</h4>
+<div class="form-group">
+    <label for="userSelect">Select User:</label>
+    <select id="userSelect" class="form-control" @bind="selectedUserId">
+        <option value="">-- Select User --</option>
+        @foreach (var user in users)
+        {
+            <option value="@user.Id">@user.Name</option>
+        }
+    </select>
+</div>
+
+<div class="form-group">
+    <label for="bookSelect">Select Book:</label>
+    <select id="bookSelect" class="form-control" @bind="selectedBookISBN">
+        <option value="">-- Select Book --</option>
+        @foreach (var book in availableBooks)
+        {
+            <option value="@book.ISBN">@book.Title by @book.Author</option>
+        }
+    </select>
+</div>
+
+<button class="btn btn-primary" @onclick="BorrowBook" disabled="@(string.IsNullOrEmpty(selectedUserId) || string.IsNullOrEmpty(selectedBookISBN))">Borrow Book</button>
+
+<h4 class="mt-4">Return a Book</h4>
+<div class="form-group">
+    <label for="returnUserSelect">Select User:</label>
+    <select id="returnUserSelect" class="form-control" @bind="selectedReturnUserId" @bind:after="LoadBorrowedBooks">
+        <option value="">-- Select User --</option>
+        @foreach (var user in users)
+        {
+            <option value="@user.Id">@user.Name</option>
+        }
+    </select>
+</div>
+
+@if (!string.IsNullOrEmpty(selectedReturnUserId) && borrowedBooks.ContainsKey(int.Parse(selectedReturnUserId)))
+{
+    <div class="form-group">
+        <label for="returnBookSelect">Select Book to Return:</label>
+        <select id="returnBookSelect" class="form-control" @bind="selectedReturnBookISBN">
+            <option value="">-- Select Book --</option>
+            @foreach (var isbn in borrowedBooks[int.Parse(selectedReturnUserId)])
+            {
+                var book = books.FirstOrDefault(b => b.ISBN == isbn);
+                if (book != null)
+                {
+                    <option value="@book.ISBN">@book.Title by @book.Author</option>
+                }
+            }
+        </select>
+    </div>
+
+    <button class="btn btn-primary" @onclick="ReturnBook" disabled="@string.IsNullOrEmpty(selectedReturnBookISBN)">Return Book</button>
+}
+
+@code {
+    private List<User> users = new List<User>();
+    private List<Book> books = new List<Book>();
+    private List<Book> availableBooks = new List<Book>();
+    private Dictionary<int, List<string>> borrowedBooks = new Dictionary<int, List<string>>();
+    private string selectedUserId = "";
+    private string selectedBookISBN = "";
+    private string selectedReturnUserId = "";
+    private string selectedReturnBookISBN = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        users = await LibraryService.GetUsersAsync();
+        books = await LibraryService.GetBooksAsync();
+        borrowedBooks = await LibraryService.GetBorrowedBooksAsync();
+        UpdateAvailableBooks();
+    }
+
+    private void UpdateAvailableBooks()
+    {
+        var borrowedISBNs = borrowedBooks.Values.SelectMany(list => list).ToHashSet();
+        availableBooks = books.Where(b => !borrowedISBNs.Contains(b.ISBN)).ToList();
+    }
+
+    private async Task BorrowBook()
+    {
+        if (!string.IsNullOrEmpty(selectedUserId) && !string.IsNullOrEmpty(selectedBookISBN))
+        {
+            try
+            {
+                await LibraryService.BorrowBookAsync(int.Parse(selectedUserId), selectedBookISBN);
+                await JSRuntime.InvokeAsync<object>("alert", "Book borrowed successfully!");
+                await LoadData();
+                selectedUserId = "";
+                selectedBookISBN = "";
+            }
+            catch (Exception ex)
+            {
+                await JSRuntime.InvokeAsync<object>("alert", $"Error borrowing book: {ex.Message}");
+            }
+        }
+    }
+
+    private async Task LoadBorrowedBooks()
+    {
+        if (!string.IsNullOrEmpty(selectedReturnUserId))
+        {
+            borrowedBooks = await LibraryService.GetBorrowedBooksAsync();
+            StateHasChanged();
+        }
+    }
+
+    private async Task ReturnBook()
+    {
+        if (!string.IsNullOrEmpty(selectedReturnUserId) && !string.IsNullOrEmpty(selectedReturnBookISBN))
+        {
+            try
+            {
+                await LibraryService.ReturnBookAsync(int.Parse(selectedReturnUserId), selectedReturnBookISBN);
+                await JSRuntime.InvokeAsync<object>("alert", "Book returned successfully!");
+                await LoadData();
+                selectedReturnBookISBN = "";
+            }
+            catch (Exception ex)
+            {
+                await JSRuntime.InvokeAsync<object>("alert", $"Error returning book: {ex.Message}");
+            }
+        }
+    }
+}
