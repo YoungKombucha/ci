@@ -11,8 +11,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: List repository contents
-      run: ls -R
     - uses: actions/checkout@v2
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
@@ -20,10 +18,7 @@ jobs:
         dotnet-version: 8.0.x
     - name: Restore dependencies
       run: dotnet restore
-      working-directory: ./Lab5prime
     - name: Build
       run: dotnet build --no-restore
-      working-directory: ./Lab5prime
     - name: Test
       run: dotnet test --no-build --verbosity normal
-      working-directory: ./Lab5prime
