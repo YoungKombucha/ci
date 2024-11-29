@@ -200,7 +200,7 @@ namespace Lab5prime.Services
 
         public async Task<Dictionary<int, List<string>>> GetBorrowedBooksAsync()
         {
-            return _borrowedBooks;
+            return borrowedBooks;
         }
     }
 
